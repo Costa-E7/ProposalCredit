@@ -1,6 +1,7 @@
 package com.example.programmers.controller;
 
 import com.example.programmers.domain.ProposalDomain;
+import com.example.programmers.dto.request.ProposalAnalysis;
 import com.example.programmers.dto.request.ProposalRequest;
 import com.example.programmers.mapper.ProposalMapper;
 import com.example.programmers.service.ProposalService;
@@ -24,12 +25,12 @@ public class ProposalController {
     }
 
     @PostMapping
-    public ResponseEntity<ProposalDomain> save(@RequestBody @Valid ProposalRequest request){
+    public ResponseEntity<ProposalAnalysis> save(@RequestBody @Valid ProposalRequest request){
         ProposalDomain proposal = ProposalMapper.toDomain(request);
-//        this.service.validateProposal(proposal);
+        ProposalAnalysis proposalAnalysis = this.service.createProposal(proposal);
         return  ResponseEntity.
                 created(URI.create("/proposal" + request.proposalIdentification())).
-                body(proposal);
+                body(proposalAnalysis);
         //mudar o tipo no retorno
     }
 }
