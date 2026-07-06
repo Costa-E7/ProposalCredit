@@ -26,7 +26,7 @@ public class ProposalController {
     @PostMapping
     public ResponseEntity<ProposalDomain> save(@RequestBody @Valid ProposalRequest request){
         ProposalDomain proposal = ProposalMapper.toDomain(request);
-        this.service.validateProposal(proposal);
+//        this.service.validateProposal(proposal);
         return  ResponseEntity.
                 created(URI.create("/proposal" + request.proposalIdentification())).
                 body(proposal);
