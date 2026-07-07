@@ -9,6 +9,7 @@ import com.example.programmers.enums.ProposalStatus;
 import com.example.programmers.mapper.ProposalMapper;
 import com.example.programmers.service.ProposalService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,13 +19,10 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/proposals")
+@RequiredArgsConstructor
 public class ProposalController {
 
     private final ProposalService service;
-
-    public ProposalController(ProposalService propostaService) {
-        this.service = propostaService;
-    }
 
     @PostMapping
     public ResponseEntity<ProposalResponse> save(@RequestBody @Valid ProposalRequest request) {
@@ -50,7 +48,7 @@ public class ProposalController {
 
     @GetMapping("/customer/{customerIdentification}")
     public ResponseEntity<List<ProposalResponse>> findAllByUser(
-            @PathVariable String customerIdentification
+            @PathVariable UUID customerIdentification
     ) {
 
         List<ProposalResponse> response = service.findAllByUser(customerIdentification);
@@ -70,7 +68,7 @@ public class ProposalController {
 
     @GetMapping("/customer/{customerIdentification}/status/{status}")
     public ResponseEntity<List<ProposalResponse>> findAllByUserAndStatus(
-            @PathVariable String customerIdentification,
+            @PathVariable UUID customerIdentification,
             @PathVariable ProposalStatus status
     ) {
         List<ProposalResponse> response =

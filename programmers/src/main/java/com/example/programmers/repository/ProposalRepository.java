@@ -12,7 +12,7 @@ import java.util.UUID;
 public interface  ProposalRepository extends JpaRepository<ProposalEntity, UUID> {
 
     List<ProposalEntity> findAllByCustomerIdentification(
-            String customerIdentification
+            UUID customerIdentification
     );
 
     List<ProposalEntity> findAllByStatus(
@@ -21,7 +21,7 @@ public interface  ProposalRepository extends JpaRepository<ProposalEntity, UUID>
 
 
     List<ProposalEntity> findAllByCustomerIdentificationAndStatus(
-            String customerIdentification,
+            UUID customerIdentification,
             ProposalStatus status
     );
 }

@@ -14,15 +14,21 @@ import com.example.programmers.mapper.ProposalMapper;
 import com.example.programmers.repository.ProposalLogRepository;
 import com.example.programmers.repository.ProposalRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
+import org.hibernate.validator.cfg.defs.UUIDDef;
 import org.springframework.boot.actuate.cache.NonUniqueCacheException;
 import org.springframework.stereotype.Service;
 
+import javax.smartcardio.Card;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+
+@AllArgsConstructor
 @Service
 public class ProposalService {
 
@@ -32,24 +38,20 @@ public class ProposalService {
 
     private final ProposalMapper mapper;
 
+    private CardService cardService;
+
     private ObjectMapper objectMapper;
 
-    public ProposalService(ProposalRepository repository,
-                           ProposalLogRepository proposalLogRepository,
-                           ProposalMapper mapper,
-                           ObjectMapper objectMapper) {
-        this.repository = repository;
-        this.proposalLogRepository = proposalLogRepository;
-        this.mapper = mapper;
-        this.objectMapper = objectMapper;
-    }
 
+    @Transactional
     public ProposalResponse createProposal(ProposalDomain proposalDomain) {
         ProposalAnalysis proposalAnalysis = isProposalValid(proposalDomain);
         proposalDomain.setProposalAnalysis(proposalAnalysis);
         ProposalEntity entity = mapper.toEntity(proposalDomain);
         ProposalEntity proposalSaved = this.repository.save(entity);
+        cardService.save(proposalDomain);
         createProposalLog(proposalSaved, proposalDomain);
+        //criar conta cartao, e add alguma ferramenta de log
         return mapper.toResponseFromEntityAndDomain(proposalDomain, proposalSaved);
     }
 
@@ -60,7 +62,7 @@ public class ProposalService {
     }
 
 
-    public List<ProposalResponse> findAllByUser(String customerIdentification) {
+    public List<ProposalResponse> findAllByUser(UUID customerIdentification) {
         List<ProposalEntity> proposals =
                 repository.findAllByCustomerIdentification(customerIdentification);
         return proposals.stream()
@@ -79,7 +81,7 @@ public class ProposalService {
 
 
     public List<ProposalResponse> findAllByUserAndStatus(
-            String customerIdentification,
+            UUID customerIdentification,
             ProposalStatus status
     ) {
 

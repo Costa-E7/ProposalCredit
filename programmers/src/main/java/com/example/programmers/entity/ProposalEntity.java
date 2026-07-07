@@ -2,12 +2,12 @@ package com.example.programmers.entity;
 
 import com.example.programmers.enums.BenefitType;
 import com.example.programmers.enums.OfferType;
+import com.example.programmers.enums.ProposalAction;
 import com.example.programmers.enums.ProposalStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -27,16 +27,18 @@ public class ProposalEntity {
     private UUID id;
 
     @Column(nullable = false)
-    private String customerIdentification;
+    private UUID customerIdentification;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OfferType offerType;
 
     @Enumerated(EnumType.STRING)
+    @Setter
     @Column(nullable = false)
     private ProposalStatus status;
 
+    @Setter
     @Column(length = 500)
     private String rejectionReason;
 
@@ -48,29 +50,19 @@ public class ProposalEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "benefit")
     @Builder.Default
+    @Setter
     private List<BenefitType> benefits = new ArrayList<>();
 
     @Builder.Default
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Builder.Default
     @Column()
     private LocalDateTime updatedAt;
 
-    public void setBenefits(List<BenefitType> benefits) {
-        this.benefits = benefits;
-    }
 
     public void setUpdatedAt(){
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void setStatus(ProposalStatus status) {
-        this.status = status;
-    }
-
-    public void setRejectionReason(String rejectionReason) {
-        this.rejectionReason = rejectionReason;
-    }
 }

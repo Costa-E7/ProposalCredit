@@ -1,6 +1,8 @@
 package com.example.programmers.handler;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -17,7 +19,7 @@ public class ErrorHandlerGlobal {
     /**
      * Trata erros de validação dos campos da requisição (@Valid).
      * É acionado quando alguma regra de Bean Validation falha.
-    */
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationErrors(MethodArgumentNotValidException ex) {
 
@@ -49,5 +51,34 @@ public class ErrorHandlerGlobal {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("error", message));
+    }
+
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, String>> handleDataIntegrity(
+            DataIntegrityViolationException ex
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(
+                        Map.of(
+                                "error",
+                                "Erro de integridade dos dados, Não foi possível salvar os dados."
+                        )
+                );
+    }
+
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<Map<String, String>> handleDatabaseError(
+            DataAccessException ex
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(
+                        Map.of(
+                                "error",
+                                "Ocorreu um erro ao acessar o banco de dados."
+                        )
+                );
     }
 }

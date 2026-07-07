@@ -13,7 +13,7 @@ import java.util.UUID;
 public record ProposalResponse(
         UUID proposalId,
         ProposalStatus status,
-        String customerIdentification,
+        UUID customerIdentification,
         OfferType offerType,
         List<BenefitType> approvedBenefits,
         String rejectionReason,
