@@ -9,7 +9,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -50,7 +49,7 @@ public class ErrorHandlerGlobal {
         Throwable cause = ex.getCause();
 
         if (cause instanceof InvalidFormatException ife) {
-            String field = ife.getPath().get(0).getFieldName();
+            String field = ife.getPath().getFirst().getFieldName();
             String invalidValue = ife.getValue().toString();
             message = "Invalid value '" + invalidValue + "' for field '" + field + "'";
         }

@@ -1,11 +1,9 @@
 package com.example.programmers.controller;
 
 import com.example.programmers.domain.ProposalDomain;
-import com.example.programmers.dto.request.ProposalAnalysis;
 import com.example.programmers.dto.request.ProposalRequest;
 import com.example.programmers.dto.request.UpdateBenefitsRequest;
 import com.example.programmers.dto.response.ProposalResponse;
-import com.example.programmers.enums.BenefitType;
 import com.example.programmers.enums.ProposalStatus;
 import com.example.programmers.mapper.ProposalMapper;
 import com.example.programmers.service.ProposalService;
@@ -30,11 +28,10 @@ public class ProposalController {
         ProposalDomain proposal = ProposalMapper.toDomain(request);
         ProposalResponse response = this.service.createProposal(proposal);
         return ResponseEntity.
-                created(URI.create("/proposals"
+                created(URI.create("/proposals/"
                         + response.proposalId()
                 )).
                 body(response);
-        //mudar o tipo no retorno
     }
 
     @GetMapping("/{id}")

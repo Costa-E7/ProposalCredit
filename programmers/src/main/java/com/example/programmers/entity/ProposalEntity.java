@@ -2,12 +2,9 @@ package com.example.programmers.entity;
 
 import com.example.programmers.enums.BenefitType;
 import com.example.programmers.enums.OfferType;
-import com.example.programmers.enums.ProposalAction;
 import com.example.programmers.enums.ProposalStatus;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -55,7 +52,7 @@ public class ProposalEntity {
 
     @Builder.Default
     @Column(nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private final LocalDateTime createdAt = LocalDateTime.now();
 
     @Column()
     private LocalDateTime updatedAt;

@@ -40,7 +40,7 @@ public class CardService {
 
         CardEntity card = repository.findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Cartão não encontrado")
+                        new RuntimeException("Cartao não encontrado")
                 );
 
         return mapper.toResponse(card);

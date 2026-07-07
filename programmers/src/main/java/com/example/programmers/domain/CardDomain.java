@@ -1,12 +1,10 @@
 package com.example.programmers.domain;
 
 import com.example.programmers.enums.BenefitType;
-import jakarta.persistence.Column;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.smartcardio.Card;
 import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;

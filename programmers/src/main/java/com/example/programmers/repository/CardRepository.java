@@ -1,7 +1,6 @@
 package com.example.programmers.repository;
 
 import com.example.programmers.entity.CardEntity;
-import com.example.programmers.entity.ProposalLogEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

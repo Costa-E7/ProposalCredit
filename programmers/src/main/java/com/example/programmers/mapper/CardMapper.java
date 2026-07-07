@@ -23,7 +23,7 @@ public class CardMapper {
     }
 
     public CardEntity toEntity(CardDomain domain, String encryptedCardNumber) {
-        CardEntity entity = CardEntity.builder()
+        return CardEntity.builder()
                 .encryptedCardNumber(domain.getCardNumber())
                 .lastFourDigits(domain.getLastFourDigits())
                 .customerIdentification(domain.getCustomerIdentification())
@@ -35,7 +35,6 @@ public class CardMapper {
                 .sala_vip(domain.isSala_vip())
                 .seguro_viagem(domain.isSeguro_viagem())
                 .build();
-        return  entity;
     }
 
 }

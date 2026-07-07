@@ -35,7 +35,7 @@ public class ProposalLogEntity {
 
     @Column(nullable = false)
     @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private final LocalDateTime createdAt = LocalDateTime.now();
 
     private ProposalAction action;
 }

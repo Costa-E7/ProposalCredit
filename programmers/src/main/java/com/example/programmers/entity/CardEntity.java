@@ -1,8 +1,10 @@
 package com.example.programmers.entity;
 
-import com.example.programmers.enums.BenefitType;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,7 +22,7 @@ public class CardEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    // se eu tivesse a arquitetura do sistema todo, aqui eu referenciaria a table
+    // se eu possuisse a arquitetura do sistema todo, aqui eu referenciaria a table
     // de usuario, onde um usuario teria poderia ter n cartoes, ficaria, provavelmente assim:
 //    @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn(

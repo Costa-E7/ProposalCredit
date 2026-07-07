@@ -18,11 +18,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
-import org.hibernate.validator.cfg.defs.UUIDDef;
-import org.springframework.boot.actuate.cache.NonUniqueCacheException;
 import org.springframework.stereotype.Service;
 
-import javax.smartcardio.Card;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -103,25 +100,10 @@ public class ProposalService {
 
         validatePropositalStatus(proposalOld.getStatus());
 
-        validateBenefits(benefits, proposalOld.getOfferType());
         ProposalAnalysis proposalAnalysis = validateBenefits(benefits, proposalOld.getOfferType());
         ProposalStatus status = proposalAnalysis.valid();
-        if (status.equals(ProposalStatus.APPROVED)) {
-            ProposalDomain currentProposal = retrieveLastProposal(id);
-            currentProposal.setId(id);
-            currentProposal.setBenefits(benefits);
-            currentProposal.setProposalAnalysis(proposalAnalysis);
-            ProposalEntity currentEntity = this.saveProposalFlow(currentProposal, ProposalAction.UPDATED);
-            return mapper.toResponseFromEntity(currentEntity);
-        }
-        if (status.equals(ProposalStatus.REJECTED_BY_BENEFIT)) {
-            proposalOld.setRejectionReason(proposalAnalysis.reason());
-        }
-        proposalOld.setUpdatedAt();
-        ProposalEntity saved = repository.save(proposalOld);
-        createBenefitsUpdateLog(saved, benefits);
+        return processBenefitUpdateResult(status, id, benefits, proposalAnalysis, proposalOld);
 
-        return null;
     }
 
     //Regras de negocio core
@@ -131,20 +113,20 @@ public class ProposalService {
         List<BenefitType> benefits = proposalDomain.getBenefits();
         OfferType offer = proposalDomain.getOfferType();
         if (offer.equals(OfferType.A) &&
-                !isHigherThan(monthlyIncome, new BigDecimal(1000)))
+                isLowerThan(monthlyIncome, new BigDecimal(1000)))
             return new ProposalAnalysis(ProposalStatus.REJECTED, "Oferta A exige renda superior a R$ 1.000.");
 
         BigDecimal investmentAmount = checkingAccount.investmentAmount();
         if (offer.equals(OfferType.B) &&
-                !isHigherThan(monthlyIncome, new BigDecimal(15000)) &&
-                !isHigherThan(investmentAmount, new BigDecimal(5000))
+                isLowerThan(monthlyIncome, new BigDecimal(15000)) &&
+                isLowerThan(investmentAmount, new BigDecimal(5000))
         )
             return new ProposalAnalysis(ProposalStatus.REJECTED,
                     "\"Oferta B exige renda superior a R$ 15.000 ou investimento superior a R$ 5.000.\"\n");
 
         LocalDateTime currentAccountOpeningDate = checkingAccount.createdAt();
         if (offer.equals(OfferType.C) &&
-                !isHigherThan(monthlyIncome, new BigDecimal(50000)) &&
+                isLowerThan(monthlyIncome, new BigDecimal(50000)) &&
                 hasCheckingAccountMoreThanYears(currentAccountOpeningDate, 2)
         )
             return new ProposalAnalysis(
@@ -156,8 +138,8 @@ public class ProposalService {
         return validateBenefits(benefits, offer);
     }
 
-    private boolean isHigherThan(BigDecimal monthlyIncome, BigDecimal minimumIncome) {
-        return monthlyIncome.compareTo(minimumIncome) > 0;
+    private boolean isLowerThan(BigDecimal monthlyIncome, BigDecimal minimumIncome) {
+        return monthlyIncome.compareTo(minimumIncome) < 0;
     }
 
     private ProposalAnalysis validateBenefits(List<BenefitType> benefits, OfferType offerType) {
@@ -281,6 +263,31 @@ public class ProposalService {
         createProposalLog(proposalSaved, proposalDomain, action);
 
         return proposalSaved;
+    }
+
+    public ProposalResponse processBenefitUpdateResult(ProposalStatus status,
+                                                       UUID id,
+                                                       List<BenefitType> benefits,
+                                                       ProposalAnalysis proposalAnalysis,
+                                                       ProposalEntity proposalOld
+
+    ) {
+        if (status.equals(ProposalStatus.APPROVED)) {
+            ProposalDomain currentProposal = retrieveLastProposal(id);
+            currentProposal.setId(id);
+            currentProposal.setBenefits(benefits);
+            currentProposal.setProposalAnalysis(proposalAnalysis);
+            ProposalEntity currentEntity = this.saveProposalFlow(currentProposal, ProposalAction.UPDATED);
+            return mapper.toResponseFromEntity(currentEntity);
+        }
+        if (status.equals(ProposalStatus.REJECTED_BY_BENEFIT)) {
+            proposalOld.setRejectionReason(proposalAnalysis.reason());
+        }
+        proposalOld.setUpdatedAt();
+        ProposalEntity saved = repository.save(proposalOld);
+        createBenefitsUpdateLog(saved, benefits);
+
+        return null;
     }
 
 }
