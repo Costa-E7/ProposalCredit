@@ -33,11 +33,12 @@ public class ProposalService {
 
     private final ProposalRepository repository;
 
-    private final ProposalLogRepository proposalLogRepository;
 
     private final ProposalMapper mapper;
 
     private CardService cardService;
+
+    private ProposalLogService proposalLogService;
 
     private ObjectMapper objectMapper;
 
@@ -190,29 +191,9 @@ public class ProposalService {
                     .createdAt(LocalDateTime.now())
                     .action(action)
                     .build();
-            proposalLogRepository.save(log);
+            proposalLogService.save(log);
         } catch (Exception e) {
             throw new RuntimeException("Erro ao gerar log da proposta", e);
-        }
-    }
-
-    private void createBenefitsUpdateLog(
-            ProposalEntity proposal,
-            List<BenefitType> benefits
-    ) {
-        try {
-            String payload = objectMapper.writeValueAsString(benefits);
-
-            ProposalLogEntity log = ProposalLogEntity.builder()
-                    .id(proposal.getId())
-                    .action(ProposalAction.UPDATED)
-                    .requestPayload(payload)
-                    .createdAt(LocalDateTime.now())
-                    .build();
-
-            proposalLogRepository.save(log);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -230,9 +211,7 @@ public class ProposalService {
     }
 
     private ProposalDomain retrieveLastProposal(UUID id) {
-        ProposalLogEntity log = proposalLogRepository
-                .findFirstByProposalIdOrderByCreatedAtDesc(id)
-                .orElseThrow(() -> new RuntimeException("Log da proposta não encontrado"));
+        ProposalLogEntity log = proposalLogService.retrieveLastProposal(id);
         try {
             return objectMapper.readValue(
                     log.getRequestPayload(),
@@ -260,7 +239,7 @@ public class ProposalService {
             cardService.save(proposalDomain);
         }
 
-        createProposalLog(proposalSaved, proposalDomain, action);
+        proposalLogService.createProposalLog(proposalSaved, proposalDomain, action);
 
         return proposalSaved;
     }
@@ -285,7 +264,7 @@ public class ProposalService {
         }
         proposalOld.setUpdatedAt();
         ProposalEntity saved = repository.save(proposalOld);
-        createBenefitsUpdateLog(saved, benefits);
+        proposalLogService.createBenefitsUpdateLog(saved, benefits);
 
         return null;
     }
