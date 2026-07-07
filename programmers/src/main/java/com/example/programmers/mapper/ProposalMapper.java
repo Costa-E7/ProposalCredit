@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Component
 public class ProposalMapper {
@@ -40,6 +41,35 @@ public class ProposalMapper {
         ProposalAnalysis proposalAnalysis = domain.getProposalAnalysis();
         ProposalStatus status = proposalAnalysis.valid();
         return ProposalEntity.builder()
+                .customerIdentification(
+                        domain.getCustomer().customerIdentification()
+                )
+                .offerType(
+                        domain.getOfferType()
+                )
+                .status(
+                        status
+                )
+                .benefits(
+                        status.equals(ProposalStatus.APPROVED)
+                                ? domain.getBenefits()
+                                : List.of()
+                )
+                .rejectionReason(
+                        status.equals(ProposalStatus.APPROVED)
+                                ? null
+                                : proposalAnalysis.reason()
+                )
+                .createdAt(
+                        LocalDateTime.now()
+                )
+                .build();
+    }
+    public static ProposalEntity toEntity(ProposalDomain domain, UUID id) {
+        ProposalAnalysis proposalAnalysis = domain.getProposalAnalysis();
+        ProposalStatus status = proposalAnalysis.valid();
+        return ProposalEntity.builder()
+                .id(id)
                 .customerIdentification(
                         domain.getCustomer().customerIdentification()
                 )

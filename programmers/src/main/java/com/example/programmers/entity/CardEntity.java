@@ -1,5 +1,6 @@
 package com.example.programmers.entity;
 
+import com.example.programmers.enums.BenefitType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -45,4 +46,16 @@ public class CardEntity {
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private boolean cashback;
+
+    @Column(nullable = false)
+    private boolean pontos;
+
+    @Column(nullable = false)
+    private boolean seguro_viagem;
+
+    @Column(nullable = false)
+    private boolean sala_vip;
 }

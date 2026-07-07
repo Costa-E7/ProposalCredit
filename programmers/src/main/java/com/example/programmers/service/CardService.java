@@ -23,7 +23,9 @@ public class CardService {
 
     public CardResponse save(ProposalDomain proposalDomain){
         Customer customer = proposalDomain.getCustomer();
-        CardDomain cardDomain = CardDomain.create(customer.name(), customer.customerIdentification());
+        CardDomain cardDomain = CardDomain.create(customer.name(),
+                customer.customerIdentification(),
+                proposalDomain.getBenefits());
         String cardNumber = cardDomain.getCardNumber();
         CardEntity cardEntity = mapper.toEntity(
                 cardDomain, encryptionService.encrypt(cardNumber)

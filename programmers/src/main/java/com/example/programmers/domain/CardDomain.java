@@ -1,5 +1,7 @@
 package com.example.programmers.domain;
 
+import com.example.programmers.enums.BenefitType;
+import jakarta.persistence.Column;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,6 +10,7 @@ import javax.smartcardio.Card;
 import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -29,10 +32,22 @@ public class CardDomain {
     private String ownerName;
 
     private LocalDateTime createdAt;
+
     private UUID customerIdentification;
 
+    private boolean cashback;
 
-    public static CardDomain create(String ownerName, UUID customerIdentification) {
+    private boolean pontos;
+
+    private boolean seguro_viagem;
+
+    private boolean sala_vip;
+
+
+
+    public static CardDomain create(String ownerName,
+                                    UUID customerIdentification,
+                                    List<BenefitType> benefits) {
 
         CardDomain cardDomain = CardDomain.builder()
                 .cardNumber(generateCardNumber())
@@ -40,6 +55,10 @@ public class CardDomain {
                 .expirationDate(generateExpirationDate())
                 .ownerName(ownerName)
                 .createdAt(LocalDateTime.now())
+                .cashback(benefits.contains(BenefitType.CASHBACK))
+                .pontos(benefits.contains(BenefitType.PONTOS))
+                .seguro_viagem(benefits.contains(BenefitType.SEGURO_VIAGEM))
+                .sala_vip(benefits.contains(BenefitType.SALA_VIP))
                 .build();
 
         String cardNumber = cardDomain.getCardNumber();

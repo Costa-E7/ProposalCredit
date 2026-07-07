@@ -34,8 +34,8 @@ public class ProposalEntity {
     private OfferType offerType;
 
     @Enumerated(EnumType.STRING)
-    @Setter
     @Column(nullable = false)
+    @Setter
     private ProposalStatus status;
 
     @Setter
@@ -64,5 +64,6 @@ public class ProposalEntity {
     public void setUpdatedAt(){
         this.updatedAt = LocalDateTime.now();
     }
+
 
 }

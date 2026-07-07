@@ -3,6 +3,7 @@ package com.example.programmers.controller;
 import com.example.programmers.domain.ProposalDomain;
 import com.example.programmers.dto.request.ProposalAnalysis;
 import com.example.programmers.dto.request.ProposalRequest;
+import com.example.programmers.dto.request.UpdateBenefitsRequest;
 import com.example.programmers.dto.response.ProposalResponse;
 import com.example.programmers.enums.BenefitType;
 import com.example.programmers.enums.ProposalStatus;
@@ -79,13 +80,15 @@ public class ProposalController {
         return ResponseEntity.ok(response);
     }
 
-    @PatchMapping("/{id}/benefits")
+    @PatchMapping("/{id}/benefit")
     public ResponseEntity<ProposalResponse> updateBenefits(
             @PathVariable UUID id,
-            @RequestBody List<BenefitType> benefits
+            @RequestBody UpdateBenefitsRequest updateBenefitsRequest
     ) {
-        ProposalResponse response = service.updateBenefits(id, benefits);
-        return ResponseEntity.ok(response);
+        ProposalResponse response = service.updateBenefits(id, updateBenefitsRequest.benefits());
+        return response != null
+                ? ResponseEntity.ok(response)
+                : ResponseEntity.notFound().build();
     }
 }
 

@@ -8,6 +8,7 @@ import com.example.programmers.enums.OfferType;
 import com.example.programmers.enums.ProposalStatus;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 import java.util.UUID;
@@ -15,11 +16,18 @@ import java.util.UUID;
 @Getter
 @Builder
 public class ProposalDomain {
+    @Setter
+    private  UUID id;
 
     private UUID proposalIdentification;
+
     private OfferType offerType;
+
+    @Setter
     private List<BenefitType> benefits;
+
     private Customer customer;
+
     private ProposalAnalysis proposalAnalysis;
 
     public void setProposalAnalysis(ProposalAnalysis proposalAnalysis) {

@@ -9,6 +9,10 @@ public record CardResponse(
         String lastFourDigits,
         LocalDate expirationDate,
         String ownerName,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        boolean cashback,
+        boolean pontos,
+        boolean seguro_viagem,
+        boolean sala_vip
 ) {
 }

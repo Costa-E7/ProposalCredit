@@ -14,7 +14,11 @@ public class CardMapper {
                 entity.getLastFourDigits(),
                 entity.getExpirationDate(),
                 entity.getOwnerName(),
-                entity.getCreatedAt()
+                entity.getCreatedAt(),
+                entity.isCashback(),
+                entity.isPontos(),
+                entity.isSeguro_viagem(),
+                entity.isSala_vip()
         );
     }
 
@@ -26,6 +30,10 @@ public class CardMapper {
                 .expirationDate(domain.getExpirationDate())
                 .ownerName(domain.getOwnerName())
                 .createdAt(domain.getCreatedAt())
+                .cashback(domain.isCashback())
+                .pontos(domain.isPontos())
+                .sala_vip(domain.isSala_vip())
+                .seguro_viagem(domain.isSeguro_viagem())
                 .build();
         return  entity;
     }
