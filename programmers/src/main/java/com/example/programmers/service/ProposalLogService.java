@@ -9,6 +9,8 @@ import com.example.programmers.repository.ProposalLogRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,8 +21,10 @@ import java.util.UUID;
 @Service
 public class ProposalLogService {
 
-    private ObjectMapper objectMapper;
-    private ProposalLogRepository repository;
+    private final ObjectMapper objectMapper;
+    private final ProposalLogRepository repository;
+    private static final Logger log = LoggerFactory.getLogger(ProposalLogService.class);
+
 
     public void createProposalLog(ProposalEntity proposalSaved, ProposalDomain proposalDomain, ProposalAction action) {
         try {
@@ -33,7 +37,10 @@ public class ProposalLogService {
                     .build();
             repository.save(log);
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao gerar log da proposta", e);
+            log.error("Erro ao criar propositalLogEntity da proposta {}.",
+                    proposalSaved.getId(),
+                    e);
+            throw new RuntimeException("Erro ao gerar propositalLogEntity da proposta", e);
         }
     }
 

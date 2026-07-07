@@ -12,12 +12,13 @@ import com.example.programmers.enums.ProposalAction;
 import com.example.programmers.enums.ProposalStatus;
 import com.example.programmers.exception.InvalidProposalStateException;
 import com.example.programmers.mapper.ProposalMapper;
-import com.example.programmers.repository.ProposalLogRepository;
 import com.example.programmers.repository.ProposalRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -31,17 +32,12 @@ import java.util.stream.Collectors;
 @Service
 public class ProposalService {
 
+    private static final Logger log = LoggerFactory.getLogger(ProposalService.class);
     private final ProposalRepository repository;
-
-
     private final ProposalMapper mapper;
-
-    private CardService cardService;
-
-    private ProposalLogService proposalLogService;
-
-    private ObjectMapper objectMapper;
-
+    private final CardService cardService;
+    private final ProposalLogService proposalLogService;
+    private final ObjectMapper objectMapper;
 
     @Transactional
     public ProposalResponse createProposal(ProposalDomain proposalDomain) {
@@ -49,12 +45,24 @@ public class ProposalService {
         proposalDomain.setProposalAnalysis(proposalAnalysis);
         ProposalEntity proposalSaved = this.saveProposalFlow(proposalDomain, ProposalAction.CREATED);
 
+        log.info("Proposta {} criada com status {}",
+                proposalSaved.getId(),
+                proposalSaved.getStatus());
+
         return mapper.toResponseFromEntityAndDomain(proposalDomain, proposalSaved);
     }
 
     public ProposalResponse findOne(UUID id) {
         ProposalEntity proposal = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Nao encontramos essa proposta"));
+                .orElseThrow(() -> {
+                    log.error("Proposal {} não encontrada", id);
+                    throw new RuntimeException("Nao encontramos essa proposta");
+                });
+
+        log.info("Proposta {} encontrada com status {}",
+                proposal.getId(),
+                proposal.getStatus());
+
         return mapper.toResponseFromEntity(proposal);
     }
 
@@ -92,19 +100,30 @@ public class ProposalService {
                 .toList();
     }
 
-    public ProposalResponse updateBenefits(
-            UUID id,
-            List<BenefitType> benefits
-    ) {
+    public ProposalResponse updateBenefits(UUID id, List<BenefitType> benefits) {
+        log.info("Atualizando benefícios da proposta {}", id);
+
         ProposalEntity proposalOld = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Nao encontramos essa proposta"));
+                .orElseThrow(() -> {
+                    log.error("Proposta {} não encontrada.", id);
+                    throw new RuntimeException("Nao encontramos essa proposta");
+                });
 
         validatePropositalStatus(proposalOld.getStatus());
 
         ProposalAnalysis proposalAnalysis = validateBenefits(benefits, proposalOld.getOfferType());
-        ProposalStatus status = proposalAnalysis.valid();
-        return processBenefitUpdateResult(status, id, benefits, proposalAnalysis, proposalOld);
 
+        log.info("Resultado da validação dos benefícios da proposta {}: {}",
+                id,
+                proposalAnalysis.valid());
+
+        return processBenefitUpdateResult(
+                proposalAnalysis.valid(),
+                id,
+                benefits,
+                proposalAnalysis,
+                proposalOld
+        );
     }
 
     //Regras de negocio core
@@ -182,21 +201,6 @@ public class ProposalService {
         return openingDate.isBefore(LocalDateTime.now().minusYears(years));
     }
 
-    private void createProposalLog(ProposalEntity proposalSaved, ProposalDomain proposalDomain, ProposalAction action) {
-        try {
-            String payload = objectMapper.writeValueAsString(proposalDomain);
-            ProposalLogEntity log = ProposalLogEntity.builder()
-                    .proposal(proposalSaved)
-                    .requestPayload(payload)
-                    .createdAt(LocalDateTime.now())
-                    .action(action)
-                    .build();
-            proposalLogService.save(log);
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao gerar log da proposta", e);
-        }
-    }
-
     private void validatePropositalStatus(ProposalStatus status) {
         switch (status) {
             case REJECTED -> throw new InvalidProposalStateException(
@@ -211,13 +215,15 @@ public class ProposalService {
     }
 
     private ProposalDomain retrieveLastProposal(UUID id) {
-        ProposalLogEntity log = proposalLogService.retrieveLastProposal(id);
+        ProposalLogEntity logEntity = proposalLogService.retrieveLastProposal(id);
         try {
             return objectMapper.readValue(
-                    log.getRequestPayload(),
+                    logEntity.getRequestPayload(),
                     ProposalDomain.class
             );
         } catch (JsonProcessingException e) {
+            log.error("Erro ao desserializar o payload da proposta {}.", id, e);
+
             throw new RuntimeException(e);
         }
     }
@@ -227,15 +233,24 @@ public class ProposalService {
             ProposalDomain proposalDomain,
             ProposalAction action
     ) {
+
+        log.info("Persistindo proposta. Ação: {}", action);
         ProposalEntity entity;
         if (ProposalAction.CREATED.equals(action)) {
             entity = mapper.toEntity(proposalDomain);
         } else {
             entity = mapper.toEntity(proposalDomain, proposalDomain.getId());
         }
+
         entity.setUpdatedAt();
         ProposalEntity proposalSaved = repository.save(entity);
+        log.info("Proposta {} persistida com sucesso.",
+                proposalSaved.getId());
+
         if (ProposalStatus.APPROVED.equals(entity.getStatus())) {
+            log.info("Criando cartão para a proposta {}.",
+                    proposalSaved.getId());
+
             cardService.save(proposalDomain);
         }
 
@@ -244,27 +259,45 @@ public class ProposalService {
         return proposalSaved;
     }
 
-    public ProposalResponse processBenefitUpdateResult(ProposalStatus status,
-                                                       UUID id,
-                                                       List<BenefitType> benefits,
-                                                       ProposalAnalysis proposalAnalysis,
-                                                       ProposalEntity proposalOld
-
+    public ProposalResponse processBenefitUpdateResult(
+            ProposalStatus status,
+            UUID id,
+            List<BenefitType> benefits,
+            ProposalAnalysis proposalAnalysis,
+            ProposalEntity proposalOld
     ) {
+
+        log.info("Processando atualização dos benefícios da proposta {}.", id);
+
         if (status.equals(ProposalStatus.APPROVED)) {
+            log.info("Benefícios aprovados para a proposta {}.", id);
+
             ProposalDomain currentProposal = retrieveLastProposal(id);
             currentProposal.setId(id);
             currentProposal.setBenefits(benefits);
             currentProposal.setProposalAnalysis(proposalAnalysis);
+
             ProposalEntity currentEntity = this.saveProposalFlow(currentProposal, ProposalAction.UPDATED);
+            log.info("Benefícios da proposta {} atualizados com sucesso.", id);
+
             return mapper.toResponseFromEntity(currentEntity);
         }
-        if (status.equals(ProposalStatus.REJECTED_BY_BENEFIT)) {
+
+        if (ProposalStatus.REJECTED_BY_BENEFIT.equals(status)) {
+            log.warn(
+                    "Atualização dos benefícios da proposta {} rejeitada. Motivo: {}",
+                    id,
+                    proposalAnalysis.reason()
+            );
+
             proposalOld.setRejectionReason(proposalAnalysis.reason());
         }
+
         proposalOld.setUpdatedAt();
         ProposalEntity saved = repository.save(proposalOld);
         proposalLogService.createBenefitsUpdateLog(saved, benefits);
+
+        log.info("Log de atualização dos benefícios da proposta {} criado.", id);
 
         return null;
     }
