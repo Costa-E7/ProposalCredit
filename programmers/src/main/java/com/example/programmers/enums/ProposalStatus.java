@@ -4,5 +4,6 @@ import lombok.Getter;
 
 public enum ProposalStatus {
     APPROVED,
-    REJECTED
+    REJECTED,
+    REJECTED_BY_BENEFIT
 }

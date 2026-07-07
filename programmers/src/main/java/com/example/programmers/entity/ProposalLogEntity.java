@@ -1,5 +1,6 @@
 package com.example.programmers.entity;
 
+import com.example.programmers.enums.ProposalAction;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,4 +35,6 @@ public class ProposalLogEntity {
     @Column(nullable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    private ProposalAction action;
 }

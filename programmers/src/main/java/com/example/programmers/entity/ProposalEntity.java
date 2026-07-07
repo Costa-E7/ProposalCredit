@@ -17,7 +17,6 @@ import java.util.UUID;
 @Entity
 @Table(name = "proposal")
 @Getter
-//@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -54,4 +53,24 @@ public class ProposalEntity {
     @Builder.Default
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Builder.Default
+    @Column()
+    private LocalDateTime updatedAt;
+
+    public void setBenefits(List<BenefitType> benefits) {
+        this.benefits = benefits;
+    }
+
+    public void setUpdatedAt(){
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void setStatus(ProposalStatus status) {
+        this.status = status;
+    }
+
+    public void setRejectionReason(String rejectionReason) {
+        this.rejectionReason = rejectionReason;
+    }
 }
