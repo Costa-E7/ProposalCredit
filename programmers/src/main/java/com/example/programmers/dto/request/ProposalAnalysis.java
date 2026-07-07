@@ -1,7 +1,11 @@
 package com.example.programmers.dto.request;
 
 
+import com.example.programmers.enums.ProposalStatus;
+import lombok.Getter;
+
+
 public record ProposalAnalysis(
-        boolean valid,
+        ProposalStatus valid,
         String reason
 ) {}

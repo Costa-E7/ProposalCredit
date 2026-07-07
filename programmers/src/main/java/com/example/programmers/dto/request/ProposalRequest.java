@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.UUID;
 
 public record ProposalRequest(
-        @NotNull(message = "proposalIdentification is required")
-        UUID proposalIdentification,
 
         @NotNull(message = "offerType is required")
         OfferType offerType,

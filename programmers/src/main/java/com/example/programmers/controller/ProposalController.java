@@ -29,7 +29,9 @@ public class ProposalController {
         ProposalDomain proposal = ProposalMapper.toDomain(request);
         ProposalAnalysis proposalAnalysis = this.service.createProposal(proposal);
         return  ResponseEntity.
-                created(URI.create("/proposal" + request.proposalIdentification())).
+                created(URI.create("/proposal"
+//                         + request.proposalIdentification()
+                        )).
                 body(proposalAnalysis);
         //mudar o tipo no retorno
     }
